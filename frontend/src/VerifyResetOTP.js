@@ -32,13 +32,13 @@ function VerifyResetOTP() {
     }
 
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/users/password-reset/verify/",
-        {
-          email: email,
-          code: code,
-        }
-      );
+  const response = await axios.post(
+    `${apiRoot}/api/users/password-reset/verify/`,
+    {
+      email: email,
+      code: code,
+    }
+  );
 
       setMessage(response.data.message);
       setIsVerified(true);

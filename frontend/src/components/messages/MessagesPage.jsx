@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
@@ -5,39 +6,67 @@ import ConversationList from "./ConversationList";
 import ChatWindow from "./ChatWindow";
 import { getCurrentUser } from "../../utils/messageStorage";
 
+const API_ROOT = (
+  process.env.REACT_APP_API_URL ||
+  "https://new-eco-campus-deploy.onrender.com"
+).replace(/\/+$/, "");
+
+const API_BASE = `${API_ROOT}/api/marketplace`;
+
 function MessagesPage({ preselectContext, role = "buyer" }) {
   const [conversations, setConversations] = useState([]);
   const [selectedThreadKey, setSelectedThreadKey] = useState(null);
   const [loading, setLoading] = useState(true);
+
   const location = useLocation();
   const token = localStorage.getItem("authToken");
   const currentUser = getCurrentUser();
-  const currentUserId = String(currentUser?.id ?? currentUser?.userId ?? currentUser?.username ?? "");
-  const API_BASE = "http://127.0.0.1:8000/api/marketplace";
+
+  const currentUserId = String(
+    currentUser?.id ??
+      currentUser?.userId ??
+      currentUser?.username ??
+      ""
+  );
+
   const query = new URLSearchParams(location.search);
   const orderIdFromQuery = query.get("orderId");
   const buyerIdFromQuery = query.get("buyerId");
   const sellerIdFromQuery = query.get("sellerId");
-  const contextOrderId = preselectContext?.orderId ? String(preselectContext.orderId) : null;
+
+  const contextOrderId = preselectContext?.orderId
+    ? String(preselectContext.orderId)
+    : null;
+
   const initialOrderId = orderIdFromQuery || contextOrderId;
 
   const fetchConversations = async () => {
     if (!token) return [];
+
     const { data } = await axios.get(`${API_BASE}/conversations/`, {
       headers: { Authorization: `Token ${token}` }
     });
+
     const safe = Array.isArray(data) ? data : [];
     setConversations(safe);
+
     return safe;
   };
 
   const threadKeyForConversation = (conv) =>
-    String(conv?.thread_key || conv?.other_user_id || conv?.id || "");
+    String(
+      conv?.thread_key ||
+        conv?.other_user_id ||
+        conv?.id ||
+        ""
+    );
 
   useEffect(() => {
     const sync = async () => {
       if (!token) return;
+
       setLoading(true);
+
       try {
         if (initialOrderId) {
           try {
@@ -45,23 +74,41 @@ function MessagesPage({ preselectContext, role = "buyer" }) {
               `${API_BASE}/conversations/ensure/`,
               {
                 order_id: Number(initialOrderId),
-                buyer_id: buyerIdFromQuery || preselectContext?.buyerId || null,
-                seller_id: sellerIdFromQuery || preselectContext?.sellerId || null
+                buyer_id:
+                  buyerIdFromQuery ||
+                  preselectContext?.buyerId ||
+                  null,
+                seller_id:
+                  sellerIdFromQuery ||
+                  preselectContext?.sellerId ||
+                  null
               },
-              { headers: { Authorization: `Token ${token}` } }
+              {
+                headers: { Authorization: `Token ${token}` }
+              }
             );
           } catch (err) {
-            console.error("ENSURE_CONVERSATION_ERROR:", err.response?.status, err.response?.data || err.message);
+            console.error(
+              "ENSURE_CONVERSATION_ERROR:",
+              err.response?.status,
+              err.response?.data || err.message
+            );
           }
         }
 
         const latest = await fetchConversations();
+
         if (!latest?.length) return;
 
         if (initialOrderId) {
-          const selected = latest.find((c) => String(c.order) === String(initialOrderId));
+          const selected = latest.find(
+            (c) => String(c.order) === String(initialOrderId)
+          );
+
           if (selected) {
-            setSelectedThreadKey(threadKeyForConversation(selected));
+            setSelectedThreadKey(
+              threadKeyForConversation(selected)
+            );
             return;
           }
         }
@@ -70,41 +117,75 @@ function MessagesPage({ preselectContext, role = "buyer" }) {
           role === "seller"
             ? buyerIdFromQuery || preselectContext?.buyerId
             : sellerIdFromQuery || preselectContext?.sellerId;
+
         if (otherFromContext) {
-          const byUser = latest.find((c) => String(c.other_user_id) === String(otherFromContext));
+          const byUser = latest.find(
+            (c) =>
+              String(c.other_user_id) === String(otherFromContext)
+          );
+
           if (byUser) {
-            setSelectedThreadKey(threadKeyForConversation(byUser));
+            setSelectedThreadKey(
+              threadKeyForConversation(byUser)
+            );
             return;
           }
         }
 
-        setSelectedThreadKey((prev) => prev || threadKeyForConversation(latest[0]));
+        setSelectedThreadKey(
+          (prev) => prev || threadKeyForConversation(latest[0])
+        );
       } catch (err) {
-        console.error("MESSAGES_SYNC_ERROR:", err.response?.status, err.response?.data || err.message);
+        console.error(
+          "MESSAGES_SYNC_ERROR:",
+          err.response?.status,
+          err.response?.data || err.message
+        );
       } finally {
         setLoading(false);
       }
     };
+
     sync();
-  }, [initialOrderId, buyerIdFromQuery, sellerIdFromQuery, preselectContext, token, role]);
+  }, [
+    initialOrderId,
+    buyerIdFromQuery,
+    sellerIdFromQuery,
+    preselectContext,
+    token,
+    role
+  ]);
 
   useEffect(() => {
     if (selectedThreadKey) return;
     if (!conversations.length) return;
-    setSelectedThreadKey(threadKeyForConversation(conversations[0]));
+
+    setSelectedThreadKey(
+      threadKeyForConversation(conversations[0])
+    );
   }, [conversations, selectedThreadKey]);
 
   const selectedConversation = useMemo(() => {
     if (!selectedThreadKey) return null;
+
     return (
-      conversations.find((item) => threadKeyForConversation(item) === String(selectedThreadKey)) || null
+      conversations.find(
+        (item) =>
+          threadKeyForConversation(item) ===
+          String(selectedThreadKey)
+      ) || null
     );
   }, [conversations, selectedThreadKey]);
 
   const fallbackConversation = useMemo(() => {
     if (selectedConversation) return selectedConversation;
     if (!initialOrderId) return null;
-    const otherId = role === "seller" ? buyerIdFromQuery || preselectContext?.buyerId : sellerIdFromQuery || preselectContext?.sellerId;
+
+    const otherId =
+      role === "seller"
+        ? buyerIdFromQuery || preselectContext?.buyerId
+        : sellerIdFromQuery || preselectContext?.sellerId;
+
     return {
       id: null,
       thread_key: otherId ? String(otherId) : "pending",
@@ -112,20 +193,35 @@ function MessagesPage({ preselectContext, role = "buyer" }) {
       order: Number(initialOrderId),
       buyer_name: preselectContext?.buyerName || "Buyer",
       seller_name: preselectContext?.sellerName || "Seller",
-      other_user_name: role === "seller" ? preselectContext?.buyerName : preselectContext?.sellerName,
+      other_user_name:
+        role === "seller"
+          ? preselectContext?.buyerName
+          : preselectContext?.sellerName,
       order_name: preselectContext?.orderName || "Order",
       last_activity: new Date().toISOString()
     };
-  }, [selectedConversation, initialOrderId, preselectContext, role, buyerIdFromQuery, sellerIdFromQuery]);
+  }, [
+    selectedConversation,
+    initialOrderId,
+    preselectContext,
+    role,
+    buyerIdFromQuery,
+    sellerIdFromQuery
+  ]);
 
   const handleSelect = (conversation) => {
-    setSelectedThreadKey(threadKeyForConversation(conversation));
+    setSelectedThreadKey(
+      threadKeyForConversation(conversation)
+    );
   };
 
   const handleConversationUpdated = async () => {
     const latest = await fetchConversations();
+
     if (!selectedThreadKey && latest?.[0]) {
-      setSelectedThreadKey(threadKeyForConversation(latest[0]));
+      setSelectedThreadKey(
+        threadKeyForConversation(latest[0])
+      );
     }
   };
 
@@ -143,7 +239,16 @@ function MessagesPage({ preselectContext, role = "buyer" }) {
         flexDirection: "row"
       }}
     >
-      <div style={{ width: "340px", minWidth: "260px", maxWidth: "40%", borderRight: "1px solid #e2e8f0", minHeight: 0, overflow: "hidden" }}>
+      <div
+        style={{
+          width: "340px",
+          minWidth: "260px",
+          maxWidth: "40%",
+          borderRight: "1px solid #e2e8f0",
+          minHeight: 0,
+          overflow: "hidden"
+        }}
+      >
         <ConversationList
           conversations={conversations}
           selectedId={selectedThreadKey}
@@ -151,7 +256,16 @@ function MessagesPage({ preselectContext, role = "buyer" }) {
           role={role}
         />
       </div>
-      <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", flexDirection: "column" }}>
+
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column"
+        }}
+      >
         <ChatWindow
           conversation={fallbackConversation}
           onConversationUpdated={handleConversationUpdated}

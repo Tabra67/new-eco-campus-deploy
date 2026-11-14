@@ -1,6 +1,11 @@
+
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
+const API_ROOT = (
+  process.env.REACT_APP_API_URL || "http://127.0.0.1:8000"
+).replace(/\/+$/, "");
 
 function Register() {
   const [username, setUsername] = useState("");
@@ -8,47 +13,56 @@ function Register() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+    setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/users/register/",
-        {
-          username: username,
-          email: email,
-          password: password,
-          password_confirm: passwordConfirm,
-        }
-      );
+      await axios.post(`${API_ROOT}/api/users/register/`, {
+        username,
+        email,
+        password,
+        password_confirm: passwordConfirm,
+      });
 
       setMessage(
         "Registration successful! Check your email for verification code."
       );
-      
-      // Optionally redirect to verification page
+
       setTimeout(() => {
         navigate(`/verify-email?email=${encodeURIComponent(email)}`);
       }, 2000);
     } catch (err) {
       if (err.response) {
-        // Handle validation errors
         const errorData = err.response.data;
+
         if (typeof errorData === "object") {
-          // Convert error object to string
           const errorMessages = Object.entries(errorData)
-            .map(([key, value]) => `${key}: ${value}`)
+            .map(([key, value]) => {
+              const formattedValue = Array.isArray(value)
+                ? value.join(", ")
+                : typeof value === "object"
+                  ? JSON.stringify(value)
+                  : value;
+
+              return `${key}: ${formattedValue}`;
+            })
             .join(", ");
+
           setMessage(errorMessages);
         } else {
           setMessage(JSON.stringify(errorData));
         }
       } else {
-        setMessage("Server not reachable. Check Django server.");
+        setMessage("Server not reachable. Check your internet connection.");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -100,10 +114,12 @@ function Register() {
         <br />
         <br />
 
-        <button type="submit">Register</button>
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? "Registering..." : "Register"}
+        </button>
       </form>
 
-      <p style={{ color: message.includes("success") ? "green" : "red" }}>
+      <p style={{ color: message.toLowerCase().includes("success") ? "green" : "red" }}>
         {message}
       </p>
     </div>
@@ -111,4 +127,3 @@ function Register() {
 }
 
 export default Register;
-

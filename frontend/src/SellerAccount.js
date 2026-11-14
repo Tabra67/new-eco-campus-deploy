@@ -45,10 +45,13 @@ function SellerAccount({ defaultSection = "overview" }) {
   const navigate = useNavigate();
   const token = localStorage.getItem("authToken");
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const API_BASE = "http://127.0.0.1:8000/api/marketplace";
-  const MEDIA_BASE_URL = "http://127.0.0.1:8000";
+ const API_ROOT = (
+  process.env.REACT_APP_API_URL || "http://127.0.0.1:8000"
+).replace(/\/+$/, "");
 
-  const username = storedUser?.username || storedUser?.full_name || "Seller";
+const API_BASE = `${API_ROOT}/api/marketplace`;
+const MEDIA_BASE_URL = API_ROOT;
+const username = storedUser?.username || storedUser?.full_name || "Seller";
 
   const navItems = [
     { id: "overview", label: "Overview", icon: "📊" },
@@ -1170,8 +1173,10 @@ const disputesAgainstMe = useMemo(() => {
             ? details.mpesaPhone
             : details.stripeId;
 
-    const token = localStorage.getItem("authToken");
-    const apiRoot = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
+   const token = localStorage.getItem("authToken");
+const apiRoot = (
+  process.env.REACT_APP_API_URL || "http://127.0.0.1:8000"
+).replace(/\/+$/, "");
     fetch(`${apiRoot}/api/wallet/withdraw/`, {
       method: "POST",
       headers: {

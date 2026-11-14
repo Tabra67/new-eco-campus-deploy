@@ -3,6 +3,10 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 
+const API_ROOT = (
+  process.env.REACT_APP_API_URL || "http://127.0.0.1:8000"
+).replace(/\/+$/, "");
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +32,7 @@ function Login() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/users/login/",
+        `${API_ROOT}/api/users/login/`,
         {
           email: email.trim(),
           password: password,
@@ -54,7 +58,6 @@ function Login() {
       if (userRole === "admin" || userRole === "super_admin") {
         setMessage("Please use the admin login page at /admin-login/");
 
-        // Remove tokens because admin login uses a separate page
         localStorage.removeItem("authToken");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");

@@ -32,7 +32,7 @@ function VerifyEmail() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/users/verify-email/",
+        `${apiRoot}/api/users/verify-email/`
         {
           email: email,
           code: code,

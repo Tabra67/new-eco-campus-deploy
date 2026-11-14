@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,8 +16,11 @@ function ForgotPassword() {
     setIsLoading(true);
 
     try {
+      const API_ROOT =
+        process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
+
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/users/password-reset/request/",
+        `${API_ROOT}/api/users/password-reset/request/`,
         {
           email: email,
         }
@@ -24,18 +28,19 @@ function ForgotPassword() {
 
       setMessage(response.data.message);
       setEmailSent(true);
-      
-      // Redirect to OTP verification page after short delay
+
       setTimeout(() => {
         navigate(`/verify-reset-otp?email=${encodeURIComponent(email)}`);
       }, 2000);
     } catch (err) {
       if (err.response) {
         const errorData = err.response.data;
+
         if (typeof errorData === "object") {
           const errorMessages = Object.entries(errorData)
             .map(([key, value]) => `${key}: ${value}`)
             .join(", ");
+
           setMessage(errorMessages);
         } else {
           setMessage(JSON.stringify(errorData));
@@ -49,7 +54,17 @@ function ForgotPassword() {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "100px", maxWidth: "400px", margin: "100px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "8px" }}>
+    <div
+      style={{
+        textAlign: "center",
+        marginTop: "100px",
+        maxWidth: "400px",
+        margin: "100px auto",
+        padding: "20px",
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+      }}
+    >
       <h2>Forgot Password</h2>
       <p>Enter your university email to receive a password reset code</p>
 
@@ -62,14 +77,26 @@ function ForgotPassword() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              style={{ width: "100%", padding: "10px", boxSizing: "border-box" }}
+              style={{
+                width: "100%",
+                padding: "10px",
+                boxSizing: "border-box",
+              }}
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={isLoading}
-            style={{ width: "100%", padding: "12px", backgroundColor: "#FF9800", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
+            style={{
+              width: "100%",
+              padding: "12px",
+              backgroundColor: "#FF9800",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
           >
             {isLoading ? "Sending..." : "Send Reset Code"}
           </button>
@@ -81,7 +108,13 @@ function ForgotPassword() {
         </div>
       )}
 
-      <p style={{ marginTop: "20px", color: message.includes("successful") || emailSent ? "green" : "red" }}>
+      <p
+        style={{
+          marginTop: "20px",
+          color:
+            message.includes("successful") || emailSent ? "green" : "red",
+        }}
+      >
         {message}
       </p>
 
@@ -96,4 +129,3 @@ function ForgotPassword() {
 }
 
 export default ForgotPassword;
-

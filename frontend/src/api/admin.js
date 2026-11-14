@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API_ROOT = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
+const API_ROOT = (
+  process.env.REACT_APP_API_URL || "https://new-eco-campus-deploy.onrender.com"
+).replace(/\/+$/, "");
 const ADMIN_BASE = `${API_ROOT}/api/admin`;
 
 const adminClient = axios.create({

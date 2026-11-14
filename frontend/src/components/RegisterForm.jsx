@@ -1,6 +1,12 @@
+
 import { useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
+const API_ROOT = (
+  process.env.REACT_APP_API_URL ||
+  "https://new-eco-campus-deploy.onrender.com"
+).replace(/\/+$/, "");
 
 const Section = ({ title, children }) => (
   <div style={{ marginBottom: "30px" }}>
@@ -84,6 +90,7 @@ const RegisterForm = ({ role = "buyer" }) => {
         .split(",")
         .map((cat) => cat.trim())
         .filter(Boolean);
+
       delete payload.store_name;
       delete payload.seller_type;
       delete payload.main_category;
@@ -110,7 +117,7 @@ const RegisterForm = ({ role = "buyer" }) => {
     }
 
     try {
-      await axios.post("http://127.0.0.1:8000/api/users/register/", payload);
+      await axios.post(`${API_ROOT}/api/users/register/`, payload);
 
       setMessage(
         `Registration successful as ${role.toUpperCase()}! Check your email for verification code.`
@@ -121,18 +128,23 @@ const RegisterForm = ({ role = "buyer" }) => {
       }, 2000);
     } catch (err) {
       console.error(err);
+
       if (err.response?.data) {
         const errors = err.response.data;
+
         if (typeof errors === "object") {
           const errorMsg = Object.entries(errors)
             .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
             .join("; ");
+
           setMessage(errorMsg);
         } else {
           setMessage(errors);
         }
       } else {
-        setMessage("Server error. Check Django server is running.");
+        setMessage(
+          "Unable to reach the server. Check your internet connection and try again."
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -176,6 +188,7 @@ const RegisterForm = ({ role = "buyer" }) => {
       >
         {role.charAt(0).toUpperCase() + role.slice(1)} Registration
       </h2>
+
       <p
         style={{
           color: "#666",
@@ -201,6 +214,7 @@ const RegisterForm = ({ role = "buyer" }) => {
             style={inputStyle}
             required
           />
+
           <input
             name="username"
             type="text"
@@ -210,6 +224,7 @@ const RegisterForm = ({ role = "buyer" }) => {
             style={inputStyle}
             required
           />
+
           <input
             name="email"
             type="email"
@@ -219,6 +234,7 @@ const RegisterForm = ({ role = "buyer" }) => {
             style={inputStyle}
             required
           />
+
           <input
             name="phone"
             type="tel"
@@ -240,6 +256,7 @@ const RegisterForm = ({ role = "buyer" }) => {
             required
             minLength="8"
           />
+
           <input
             name="password_confirm"
             type="password"
@@ -260,6 +277,7 @@ const RegisterForm = ({ role = "buyer" }) => {
             onChange={handleChange}
             style={inputStyle}
           />
+
           <input
             name="city"
             type="text"
@@ -281,6 +299,7 @@ const RegisterForm = ({ role = "buyer" }) => {
               onFocus={focusStyle}
               onBlur={blurStyle}
             />
+
             <input
               name="preferred_categories"
               type="text"
@@ -307,6 +326,7 @@ const RegisterForm = ({ role = "buyer" }) => {
               onBlur={blurStyle}
               required
             />
+
             <input
               name="seller_type"
               type="text"
@@ -317,6 +337,7 @@ const RegisterForm = ({ role = "buyer" }) => {
               onFocus={focusStyle}
               onBlur={blurStyle}
             />
+
             <input
               name="main_category"
               type="text"
@@ -327,6 +348,7 @@ const RegisterForm = ({ role = "buyer" }) => {
               onFocus={focusStyle}
               onBlur={blurStyle}
             />
+
             <input
               name="subcategory"
               type="text"
@@ -337,6 +359,7 @@ const RegisterForm = ({ role = "buyer" }) => {
               onFocus={focusStyle}
               onBlur={blurStyle}
             />
+
             <textarea
               name="business_address"
               placeholder="Business Address"
@@ -346,6 +369,7 @@ const RegisterForm = ({ role = "buyer" }) => {
               onFocus={focusStyle}
               onBlur={blurStyle}
             />
+
             <input
               name="payout_method"
               type="text"
@@ -356,6 +380,7 @@ const RegisterForm = ({ role = "buyer" }) => {
               onFocus={focusStyle}
               onBlur={blurStyle}
             />
+
             <input
               name="payout_details"
               type="text"
@@ -437,9 +462,23 @@ const RegisterForm = ({ role = "buyer" }) => {
         </div>
       )}
 
-      <div style={{ marginTop: "30px", fontSize: "0.95rem", textAlign: "center" }}>
+      <div
+        style={{
+          marginTop: "30px",
+          fontSize: "0.95rem",
+          textAlign: "center",
+        }}
+      >
         <span style={{ color: "#666" }}>Already have an account? </span>
-        <a href="/login" style={{ color: "#667eea", textDecoration: "none", fontWeight: 500 }}>
+
+        <a
+          href="/login"
+          style={{
+            color: "#667eea",
+            textDecoration: "none",
+            fontWeight: 500,
+          }}
+        >
           Sign in
         </a>
       </div>

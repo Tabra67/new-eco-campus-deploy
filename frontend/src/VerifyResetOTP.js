@@ -1,6 +1,12 @@
+
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useLocation, Link } from "react-router-dom";
+
+const API_ROOT = (
+  process.env.REACT_APP_API_URL ||
+  "https://new-eco-campus-deploy.onrender.com"
+).replace(/\/+$/, "");
 
 function VerifyResetOTP() {
   const [email, setEmail] = useState("");
@@ -8,48 +14,52 @@ function VerifyResetOTP() {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get email from query parameter if available
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const emailParam = params.get("email");
+
     if (emailParam) {
       setEmail(emailParam);
     }
-  }, [location]);
+  }, [location.search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
-    setIsLoading(true);
 
     if (!email || !code) {
       setMessage("Please enter both email and verification code.");
-      setIsLoading(false);
       return;
     }
 
-    try {
-  const response = await axios.post(
-    `${apiRoot}/api/users/password-reset/verify/`,
-    {
-      email: email,
-      code: code,
-    }
-  );
+    setIsLoading(true);
 
-      setMessage(response.data.message);
+    try {
+      const response = await axios.post(
+        `${API_ROOT}/api/users/password-reset/verify/`,
+        {
+          email: email,
+          code: code,
+        }
+      );
+
+      setMessage(response.data.message || "Verification successful!");
       setIsVerified(true);
-      
-      // Redirect to reset password page after successful verification
+
       setTimeout(() => {
-        navigate(`/reset-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`);
+        navigate(
+          `/reset-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`
+        );
       }, 1500);
     } catch (err) {
       if (err.response) {
-        setMessage(err.response.data.error || "Verification failed.");
+        setMessage(
+          err.response.data.error || "Verification failed."
+        );
       } else {
         setMessage("Server not reachable. Check Django server.");
       }
@@ -69,16 +79,18 @@ function VerifyResetOTP() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/users/password-reset/request/",
+        `${API_ROOT}/api/users/password-reset/request/`,
         {
           email: email,
         }
       );
 
-      setMessage(response.data.message);
+      setMessage(response.data.message || "Verification code sent.");
     } catch (err) {
       if (err.response) {
-        setMessage(err.response.data.error || "Failed to resend code.");
+        setMessage(
+          err.response.data.error || "Failed to resend code."
+        );
       } else {
         setMessage("Server not reachable. Check Django server.");
       }
@@ -88,7 +100,17 @@ function VerifyResetOTP() {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "100px", maxWidth: "400px", margin: "100px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "8px" }}>
+    <div
+      style={{
+        textAlign: "center",
+        marginTop: "100px",
+        maxWidth: "400px",
+        margin: "100px auto",
+        padding: "20px",
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+      }}
+    >
       <h2>Verify Reset Code</h2>
       <p>Enter the verification code sent to your email</p>
 
@@ -100,7 +122,11 @@ function VerifyResetOTP() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            style={{ width: "100%", padding: "10px", boxSizing: "border-box" }}
+            style={{
+              width: "100%",
+              padding: "10px",
+              boxSizing: "border-box",
+            }}
           />
         </div>
 
@@ -113,16 +139,32 @@ function VerifyResetOTP() {
             maxLength={6}
             pattern="[0-9]{6}"
             required
-            style={{ width: "100%", padding: "10px", boxSizing: "border-box" }}
+            style={{
+              width: "100%",
+              padding: "10px",
+              boxSizing: "border-box",
+            }}
           />
         </div>
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           disabled={isLoading || isVerified}
-          style={{ width: "100%", padding: "12px", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
+          style={{
+            width: "100%",
+            padding: "12px",
+            backgroundColor: "#4CAF50",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
         >
-          {isLoading ? "Verifying..." : isVerified ? "Verified!" : "Verify Code"}
+          {isLoading
+            ? "Verifying..."
+            : isVerified
+            ? "Verified!"
+            : "Verify Code"}
         </button>
       </form>
 
@@ -131,7 +173,15 @@ function VerifyResetOTP() {
       <button
         onClick={handleResendCode}
         disabled={isLoading || isVerified}
-        style={{ width: "100%", padding: "12px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
+        style={{
+          width: "100%",
+          padding: "12px",
+          backgroundColor: "#6c757d",
+          color: "white",
+          border: "none",
+          borderRadius: "4px",
+          cursor: "pointer",
+        }}
       >
         {isLoading ? "Sending..." : "Resend Code"}
       </button>
@@ -142,7 +192,10 @@ function VerifyResetOTP() {
 
       <p style={{ marginTop: "20px" }}>
         Remember your password?{" "}
-        <Link to="/login" style={{ color: "#007bff", textDecoration: "none" }}>
+        <Link
+          to="/login"
+          style={{ color: "#007bff", textDecoration: "none" }}
+        >
           Login
         </Link>
       </p>
@@ -151,4 +204,3 @@ function VerifyResetOTP() {
 }
 
 export default VerifyResetOTP;
-

@@ -1,53 +1,61 @@
+
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
+
+const API_ROOT = (
+  process.env.REACT_APP_API_URL ||
+  "https://new-eco-campus-deploy.onrender.com"
+).replace(/\/+$/, "");
 
 function VerifyEmail() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get email from query parameter if available
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const emailParam = params.get("email");
+
     if (emailParam) {
       setEmail(emailParam);
     }
-  }, [location]);
+  }, [location.search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
-    setIsLoading(true);
 
     if (!email || !code) {
       setMessage("Please enter both email and verification code.");
-      setIsLoading(false);
       return;
     }
 
+    setIsLoading(true);
+
     try {
       const response = await axios.post(
-        `${apiRoot}/api/users/verify-email/`
+        `${API_ROOT}/api/users/verify-email/`,
         {
           email: email,
           code: code,
         }
       );
 
-      setMessage(response.data.message);
-      
-      // Redirect to login after successful verification
+      setMessage(response.data.message || "Email verified successfully!");
+
       setTimeout(() => {
         navigate("/login");
       }, 2000);
     } catch (err) {
       if (err.response) {
-        setMessage(err.response.data.error || "Verification failed.");
+        setMessage(
+          err.response.data.error || "Verification failed."
+        );
       } else {
         setMessage("Server not reachable. Check Django server.");
       }
@@ -67,16 +75,18 @@ function VerifyEmail() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/users/resend-otp/",
+        `${API_ROOT}/api/users/resend-otp/`,
         {
           email: email,
         }
       );
 
-      setMessage(response.data.message);
+      setMessage(response.data.message || "Verification code sent.");
     } catch (err) {
       if (err.response) {
-        setMessage(err.response.data.error || "Failed to resend code.");
+        setMessage(
+          err.response.data.error || "Failed to resend code."
+        );
       } else {
         setMessage("Server not reachable. Check Django server.");
       }
@@ -130,7 +140,7 @@ function VerifyEmail() {
         {isLoading ? "Sending..." : "Resend Code"}
       </button>
 
-      <p style={{ color: message.includes("success") ? "green" : "red" }}>
+      <p style={{ color: message.toLowerCase().includes("success") ? "green" : "red" }}>
         {message}
       </p>
     </div>
@@ -138,4 +148,3 @@ function VerifyEmail() {
 }
 
 export default VerifyEmail;
-

@@ -22,3 +22,4 @@ psycopg[binary]==3.2.10
 whitenoise==6.9.0
 djangorestframework-simplejwt==5.5.1
 requests==2.32.5
+Pillow==11.3.0

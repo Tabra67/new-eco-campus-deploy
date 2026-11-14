@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "dj_rest_auth.registration",
     "channels",
+    "anymail",
 
     "users",
     "marketplace",
@@ -314,18 +315,18 @@ CORS_ALLOW_ALL_ORIGINS = env_bool("CORS_ALLOW_ALL_ORIGINS", False)
 # EMAIL
 # --------------------------------------------------
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+# --------------------------------------------------
+# EMAIL - RESEND API
+# --------------------------------------------------
 
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.getenv(
-    "DEFAULT_FROM_EMAIL",
-    EMAIL_HOST_USER or "noreply@example.com",
-)
+EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
 
+ANYMAIL = {
+    "RESEND_API_KEY": os.getenv("RESEND_API_KEY", "").strip(),
+}
+
+DEFAULT_FROM_EMAIL = "onboarding@resend.dev"
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # --------------------------------------------------
 # JWT AUTHENTICATION

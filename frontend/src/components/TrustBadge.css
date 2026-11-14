@@ -1,0 +1,30 @@
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #334155;
+}
+.trust-badge-score {
+  font-weight: 700;
+  color: #15803d;
+}
+.trust-badge-risk {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.trust-badge-risk.TRUSTED { background: #dcfce7; color: #166534; }
+.trust-badge-risk.GOOD { background: #dbeafe; color: #1e40af; }
+.trust-badge-risk.WATCHLIST { background: #fef3c7; color: #92400e; }
+.trust-badge-risk.HIGH_RISK { background: #fee2e2; color: #991b1b; }
+.trust-offender {
+  background: #7f1d1d;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+}

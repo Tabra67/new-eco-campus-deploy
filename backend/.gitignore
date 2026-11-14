@@ -1,0 +1,14 @@
+# Django secret key
+SECRET_KEY=your_django_secret_key_here
+
+# Debug mode
+DEBUG=True
+
+# Database (if you have any credentials, optional)
+# DB_NAME=...
+# DB_USER=...
+# DB_PASSWORD=...
+
+# SendGrid email settings
+SENDGRID_API_KEY=YOUR_SENDGRID_API_KEY_HERE
+DEFAULT_FROM_EMAIL=youremail@yourdomain.com
